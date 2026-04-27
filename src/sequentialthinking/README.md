@@ -1,23 +1,27 @@
 # Sequential Thinking MCP Server
 
-An MCP server implementation that provides a tool for dynamic and reflective problem-solving through a structured thinking process.
+An MCP server implementation that provides a tool for dynamic and reflective problem-solving through concise, user-visible reasoning checkpoints.
+
+This server is designed for clients that must not expose hidden chain-of-thought in tool calls or tool outputs. The tool accepts brief planning summaries, returns only progress metadata, and does not log raw checkpoint text unless explicitly configured to do so.
 
 ## Features
 
 - Break down complex problems into manageable steps
-- Revise and refine thoughts as understanding deepens
+- Revise and refine reasoning checkpoints as understanding deepens
 - Branch into alternative paths of reasoning
 - Adjust the total number of thoughts dynamically
 - Generate and verify solution hypotheses
+- Avoid returning raw reasoning text in tool output
+- Avoid logging raw reasoning text by default
 
 ## Tool
 
 ### sequential_thinking
 
-Facilitates a detailed, step-by-step thinking process for problem-solving and analysis.
+Facilitates a step-by-step planning process for problem-solving and analysis. Inputs should be concise summaries that are safe to show in client transcripts. Do not include hidden chain-of-thought, secrets, credentials, or security-sensitive operational details.
 
 **Inputs:**
-- `thought` (string): The current thinking step
+- `thought` (string): A concise, user-visible reasoning checkpoint
 - `nextThoughtNeeded` (boolean): Whether another thought step is needed
 - `thoughtNumber` (integer): Current thought number
 - `totalThoughts` (integer): Estimated total thoughts needed
@@ -69,6 +73,10 @@ After installing the server in your MCP host:
 
 ## Configuration
 
+Raw thought logging is disabled by default. To opt in for local debugging, set `ENABLE_THOUGHT_LOGGING` to `true`.
+
+The legacy `DISABLE_THOUGHT_LOGGING=true` setting is still honored and takes precedence over `ENABLE_THOUGHT_LOGGING=true`.
+
 ### Usage with Claude Desktop
 
 Add this to your `claude_desktop_config.json`:
@@ -83,7 +91,10 @@ Add this to your `claude_desktop_config.json`:
       "args": [
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
     }
   }
 }
@@ -101,7 +112,10 @@ On Windows, use `cmd /c` to launch `npx`:
         "npx",
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
     }
   }
 }
@@ -118,6 +132,8 @@ On Windows, use `cmd /c` to launch `npx`:
         "run",
         "--rm",
         "-i",
+        "-e",
+        "DISABLE_THOUGHT_LOGGING=true",
         "mcp/sequentialthinking"
       ]
     }
@@ -125,7 +141,7 @@ On Windows, use `cmd /c` to launch `npx`:
 }
 ```
 
-To disable logging of thought information set env var: `DISABLE_THOUGHT_LOGGING` to `true`.
+To enable logging of thought information for local debugging, set env var: `ENABLE_THOUGHT_LOGGING` to `true`.
 
 ### Usage with VS Code
 
@@ -155,7 +171,10 @@ For NPX installation:
       "args": [
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
     }
   }
 }
@@ -173,7 +192,10 @@ On Windows, use:
         "npx",
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
-      ]
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
     }
   }
 }
@@ -190,6 +212,8 @@ For Docker installation:
         "run",
         "--rm",
         "-i",
+        "-e",
+        "DISABLE_THOUGHT_LOGGING=true",
         "mcp/sequentialthinking"
       ]
     }

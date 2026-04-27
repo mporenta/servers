@@ -26,9 +26,9 @@ server.registerTool(
   "sequentialthinking",
   {
     title: "Sequential Thinking",
-    description: `A detailed tool for dynamic and reflective problem-solving through thoughts.
-This tool helps analyze problems through a flexible thinking process that can adapt and evolve.
-Each thought can build on, question, or revise previous insights as understanding deepens.
+    description: `A tool for dynamic and reflective problem-solving through concise reasoning checkpoints.
+This tool helps analyze problems through a flexible process that can adapt and evolve without exposing hidden chain-of-thought.
+Each checkpoint should be a brief, user-visible summary of the current step, decision, or revision.
 
 When to use this tool:
 - Breaking down complex problems into steps
@@ -41,24 +41,25 @@ When to use this tool:
 
 Key features:
 - You can adjust total_thoughts up or down as you progress
-- You can question or revise previous thoughts
-- You can add more thoughts even after reaching what seemed like the end
-- You can express uncertainty and explore alternative approaches
-- Not every thought needs to build linearly - you can branch or backtrack
+- You can question or revise previous checkpoints
+- You can add more checkpoints even after reaching what seemed like the end
+- You can note uncertainty and explore alternative approaches at summary level
+- Not every checkpoint needs to build linearly - you can branch or backtrack
 - Generates a solution hypothesis
-- Verifies the hypothesis based on the Chain of Thought steps
+- Verifies the hypothesis based on the recorded checkpoints
 - Repeats the process until satisfied
 - Provides a correct answer
 
 Parameters explained:
-- thought: Your current thinking step, which can include:
-  * Regular analytical steps
-  * Revisions of previous thoughts
+- thought: A concise, user-visible reasoning checkpoint. Do not include hidden chain-of-thought,
+  secrets, credentials, or security-sensitive operational details. It can include:
+  * Brief analytical summaries
+  * Revisions of previous checkpoints
   * Questions about previous decisions
   * Realizations about needing more analysis
   * Changes in approach
-  * Hypothesis generation
-  * Hypothesis verification
+  * Hypothesis summaries
+  * Hypothesis verification summaries
 - nextThoughtNeeded: True if you need more thinking, even if at what seemed like the end
 - thoughtNumber: Current number in sequence (can go beyond initial total if needed)
 - totalThoughts: Current estimate of thoughts needed (can be adjusted up/down)
@@ -70,18 +71,18 @@ Parameters explained:
 
 You should:
 1. Start with an initial estimate of needed thoughts, but be ready to adjust
-2. Feel free to question or revise previous thoughts
-3. Don't hesitate to add more thoughts if needed, even at the "end"
-4. Express uncertainty when present
+2. Feel free to question or revise previous checkpoints
+3. Don't hesitate to add more checkpoints if needed, even at the "end"
+4. Express uncertainty at a concise summary level when present
 5. Mark thoughts that revise previous thinking or branch into new paths
 6. Ignore information that is irrelevant to the current step
 7. Generate a solution hypothesis when appropriate
-8. Verify the hypothesis based on the Chain of Thought steps
+8. Verify the hypothesis based on the recorded checkpoints
 9. Repeat the process until satisfied with the solution
 10. Provide a single, ideally correct answer as the final output
 11. Only set nextThoughtNeeded to false when truly done and a satisfactory answer is reached`,
     inputSchema: {
-      thought: z.string().describe("Your current thinking step"),
+      thought: z.string().describe("A concise, user-visible reasoning checkpoint. Do not include hidden chain-of-thought, secrets, credentials, or security-sensitive operational details."),
       nextThoughtNeeded: coercedBoolean.describe("Whether another thought step is needed"),
       thoughtNumber: z.coerce.number().int().min(1).describe("Current thought number (numeric value, e.g., 1, 2, 3)"),
       totalThoughts: z.coerce.number().int().min(1).describe("Estimated total thoughts needed (numeric value, e.g., 5, 10)"),

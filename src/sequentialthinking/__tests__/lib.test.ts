@@ -19,6 +19,7 @@ describe('SequentialThinkingServer', () => {
   beforeEach(() => {
     // Disable thought logging for tests
     process.env.DISABLE_THOUGHT_LOGGING = 'true';
+    delete process.env.ENABLE_THOUGHT_LOGGING;
     server = new SequentialThinkingServer();
   });
 
@@ -42,6 +43,7 @@ describe('SequentialThinkingServer', () => {
       expect(data.totalThoughts).toBe(3);
       expect(data.nextThoughtNeeded).toBe(true);
       expect(data.thoughtHistoryLength).toBe(1);
+      expect(result.content[0].text).not.toContain(input.thought);
     });
 
     it('should accept thought with optional fields', () => {
@@ -61,6 +63,7 @@ describe('SequentialThinkingServer', () => {
       const data = JSON.parse(result.content[0].text);
       expect(data.thoughtNumber).toBe(2);
       expect(data.thoughtHistoryLength).toBe(1);
+      expect(result.content[0].text).not.toContain(input.thought);
     });
 
     it('should track multiple thoughts in history', () => {
@@ -106,6 +109,7 @@ describe('SequentialThinkingServer', () => {
       const data = JSON.parse(result.content[0].text);
 
       expect(data.totalThoughts).toBe(5);
+      expect(result.content[0].text).not.toContain(input.thought);
     });
   });
 
@@ -235,6 +239,7 @@ describe('SequentialThinkingServer', () => {
       expect(result.content.length).toBe(1);
       expect(result.content[0]).toHaveProperty('type', 'text');
       expect(result.content[0]).toHaveProperty('text');
+      expect(result.content[0].text).not.toContain(input.thought);
     });
 
     it('should return valid JSON in response', () => {
@@ -253,16 +258,21 @@ describe('SequentialThinkingServer', () => {
 
   describe('processThought - with logging enabled', () => {
     let serverWithLogging: SequentialThinkingServer;
+    let stderrSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       // Enable thought logging for these tests
       delete process.env.DISABLE_THOUGHT_LOGGING;
+      process.env.ENABLE_THOUGHT_LOGGING = 'true';
+      stderrSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       serverWithLogging = new SequentialThinkingServer();
     });
 
     afterEach(() => {
       // Reset to disabled for other tests
       process.env.DISABLE_THOUGHT_LOGGING = 'true';
+      delete process.env.ENABLE_THOUGHT_LOGGING;
+      stderrSpy.mockRestore();
     });
 
     it('should format and log regular thoughts', () => {
@@ -275,6 +285,8 @@ describe('SequentialThinkingServer', () => {
 
       const result = serverWithLogging.processThought(input);
       expect(result.isError).toBeUndefined();
+      expect(stderrSpy).toHaveBeenCalled();
+      expect(String(stderrSpy.mock.calls[0][0])).toContain(input.thought);
     });
 
     it('should format and log revision thoughts', () => {
@@ -289,6 +301,8 @@ describe('SequentialThinkingServer', () => {
 
       const result = serverWithLogging.processThought(input);
       expect(result.isError).toBeUndefined();
+      expect(stderrSpy).toHaveBeenCalled();
+      expect(String(stderrSpy.mock.calls[0][0])).toContain(input.thought);
     });
 
     it('should format and log branch thoughts', () => {
@@ -303,6 +317,37 @@ describe('SequentialThinkingServer', () => {
 
       const result = serverWithLogging.processThought(input);
       expect(result.isError).toBeUndefined();
+      expect(stderrSpy).toHaveBeenCalled();
+      expect(String(stderrSpy.mock.calls[0][0])).toContain(input.thought);
+    });
+  });
+
+  describe('processThought - with default logging', () => {
+    let stderrSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      delete process.env.DISABLE_THOUGHT_LOGGING;
+      delete process.env.ENABLE_THOUGHT_LOGGING;
+      stderrSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      process.env.DISABLE_THOUGHT_LOGGING = 'true';
+      stderrSpy.mockRestore();
+    });
+
+    it('should not log raw thoughts unless explicitly enabled', () => {
+      const defaultServer = new SequentialThinkingServer();
+      const input = {
+        thought: 'This raw planning text should not be logged by default',
+        thoughtNumber: 1,
+        totalThoughts: 1,
+        nextThoughtNeeded: false
+      };
+
+      const result = defaultServer.processThought(input);
+      expect(result.isError).toBeUndefined();
+      expect(stderrSpy).not.toHaveBeenCalled();
     });
   });
 });
