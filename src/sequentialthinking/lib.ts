@@ -12,13 +12,18 @@ export interface ThoughtData {
   nextThoughtNeeded: boolean;
 }
 
+type ThoughtRecord = Omit<ThoughtData, 'thought'> & {
+  thoughtLength: number;
+};
+
 export class SequentialThinkingServer {
-  private thoughtHistory: ThoughtData[] = [];
-  private branches: Record<string, ThoughtData[]> = {};
-  private disableThoughtLogging: boolean;
+  private thoughtHistory: ThoughtRecord[] = [];
+  private branches: Record<string, ThoughtRecord[]> = {};
+  private enableThoughtLogging: boolean;
 
   constructor() {
-    this.disableThoughtLogging = (process.env.DISABLE_THOUGHT_LOGGING || "").toLowerCase() === "true";
+    const disableThoughtLogging = (process.env.DISABLE_THOUGHT_LOGGING || "").toLowerCase() === "true";
+    this.enableThoughtLogging = (process.env.ENABLE_THOUGHT_LOGGING || "").toLowerCase() === "true" && !disableThoughtLogging;
   }
 
   private formatThought(thoughtData: ThoughtData): string {
@@ -49,6 +54,14 @@ export class SequentialThinkingServer {
 └${border}┘`;
   }
 
+  private toThoughtRecord(thoughtData: ThoughtData): ThoughtRecord {
+    const { thought, ...metadata } = thoughtData;
+    return {
+      ...metadata,
+      thoughtLength: thought.length,
+    };
+  }
+
   public processThought(input: ThoughtData): { content: Array<{ type: "text"; text: string }>; isError?: boolean } {
     try {
       // Validation happens at the tool registration layer via Zod
@@ -57,16 +70,17 @@ export class SequentialThinkingServer {
         input.totalThoughts = input.thoughtNumber;
       }
 
-      this.thoughtHistory.push(input);
+      const thoughtRecord = this.toThoughtRecord(input);
+      this.thoughtHistory.push(thoughtRecord);
 
       if (input.branchFromThought && input.branchId) {
         if (!this.branches[input.branchId]) {
           this.branches[input.branchId] = [];
         }
-        this.branches[input.branchId].push(input);
+        this.branches[input.branchId].push(thoughtRecord);
       }
 
-      if (!this.disableThoughtLogging) {
+      if (this.enableThoughtLogging) {
         const formattedThought = this.formatThought(input);
         console.error(formattedThought);
       }
