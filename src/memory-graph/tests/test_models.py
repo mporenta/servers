@@ -23,7 +23,10 @@ def test_relation_accepts_from_alias_and_serializes_back():
 
 
 def test_relation_populate_by_name_also_works():
-    rel = Relation(from_="A", to="B", relationType="knows")
+    """Internal callers can construct via the alias (populate_by_name=True)."""
+    rel = Relation.model_validate(
+        {"from": "A", "to": "B", "relationType": "knows"}
+    )
     assert rel.from_ == "A"
 
 

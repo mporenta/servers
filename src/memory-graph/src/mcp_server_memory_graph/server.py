@@ -37,7 +37,10 @@ class AppContext:
 
 def _repo(ctx: Context) -> MemoryGraphRepository:
     """Pull the repository out of the FastMCP lifespan context."""
-    return ctx.request_context.lifespan_context.repo
+    request_context = ctx.request_context
+    assert request_context is not None, "tool invoked outside a request"
+    app_ctx: AppContext = request_context.lifespan_context
+    return app_ctx.repo
 
 
 def build_server(settings: Settings | None = None) -> FastMCP:
