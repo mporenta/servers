@@ -1,0 +1,46 @@
+[project]
+name = "mcp-server-memory-graph"
+version = "0.1.0"
+description = "Prototype FastMCP server backing a relational memory graph in Postgres"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Anthropic, PBC." }]
+keywords = ["mcp", "llm", "memory", "knowledge-graph", "fastmcp", "postgres"]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    "asyncpg>=0.29",
+    "fastmcp>=0.4",
+    "mcp>=1.1.3",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+]
+
+[project.scripts]
+mcp-server-memory-graph = "mcp_server_memory_graph:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pyright>=1.1.389",
+    "ruff>=0.7.3",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "basic"
